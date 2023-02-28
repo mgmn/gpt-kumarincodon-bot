@@ -15,6 +15,9 @@ str_limit = 1000
 # 公開範囲
 post_visibility = "unlisted"
 
+# リモートユーザーとの会話を許可する
+allow_remote = False
+
 # 初期プロンプト
 init_prompt = "System: Instructions for 仮想秘書官: You're a regular Mastodon user. "
 init_prompt += "Your Mastodon instance has one human user who is the administator of this instance. "
@@ -67,6 +70,15 @@ class Stream(StreamListener):
             main(content, st, id, acct, display_name)
 
 def main(content, st, id, acct, display_name):
+
+    if not allow_remote and id != acct:
+        reply_text = "私はリモートユーザーとの会話は許可されていないのです。申し訳ありません。"
+
+        mastodon.status_reply(st,
+                reply_text,
+                id,
+                visibility=post_visibility)
+        return
 
     global DBFlag
     global keywordMemory
