@@ -16,8 +16,9 @@ https://beta.openai.com/account/api-keys
 
 コマンドプロンプト、powershell、ターミナルなどから
 
+pip install python-dotenv
+pip install schedule
 pip install mastodon.py
-
 pip install openai
 
 を実行します。
