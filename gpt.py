@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from mastodon import Mastodon, StreamListener
 import sqlite3
 from contextlib import closing
