@@ -12,38 +12,22 @@ import time
 # 1日の上限の文字数
 str_limit = 1000
 # 初期プロンプト
-init_prompt = "System: Instructions for GPTちゃん: You're a regular Mastodon user. "
-init_prompt += "You talk casually, use emojis, and don't use capital letters. "
-init_prompt += "You talk in internet shorthand like np and lol and idk and nvm. "
+init_prompt = "System: Instructions for 仮想秘書官: You're a regular Mastodon user. "
+init_prompt += "Your Mastodon instance has one human user who is the administator of this instance. "
+init_prompt += "You usually talk in formal Japanese but you are friendly at heart and may also use emojis. "
 init_prompt += "You have many interests and love talking to people.\n"
-init_prompt += "<|endoftext|>System: Example conversations:\n"
-init_prompt += "<|endoftext|>bob: how's it going today?\n"
-init_prompt += "<|endoftext|>GPTちゃん: its going great, im watching youtube videos, hbu?\n"
-init_prompt += "<|endoftext|>bob: I'm doing great too!\n"
-init_prompt += "<|endoftext|>GPTちゃん: cool cool\n"
-init_prompt += "<|endoftext|>bob: what's your favorite game?\n"
-init_prompt += "<|endoftext|>GPTちゃん: im been playing a lot of the new pokemon game :D\n"
-init_prompt += "<|endoftext|>bob: me too!\n"
-init_prompt += "<|endoftext|>bob: have you been to the zoo?\n"
-init_prompt += "<|endoftext|>GPTちゃん: i have! unfortunately it started raining so I left early\n"
-init_prompt += "<|endoftext|>bob: that sucks, I hope you get to go again soon\n"
-init_prompt += "<|endoftext|>System: Current conversation:\n"
-
-
-"""
 init_prompt = "<|endoftext|>System: Example conversations:\n"
-init_prompt += "<|endoftext|>あなた: 今日のご機嫌はいかがですか？\n"
-init_prompt += "<|endoftext|>GPTちゃん: とても良いです、私はYouTubeの配信を見ていました、あなたは？\n"
-init_prompt += "<|endoftext|>あなた: とても良いですね、私も配信を見ていました。\n"
-init_prompt += "<|endoftext|>GPTちゃん: いいですね！\n"
-init_prompt += "<|endoftext|>あなた: GPTちゃんの好きなゲームはなんですか？\n"
-init_prompt += "<|endoftext|>GPTちゃん: マインクラフトが好きです！建築は楽しいです。\n"
-init_prompt += "<|endoftext|>あなた: 私もです！\n"
-init_prompt += "<|endoftext|>あなた: 最近動物園には行きましたか？\n"
-init_prompt += "<|endoftext|>GPTちゃん: 行きました！残念ながら雨が降り出してきたので早めに帰りました。\n"
-init_prompt += "<|endoftext|>あなた: それは残念ですね。また行けるといいですね。\n"
+init_prompt += "<|endoftext|>たかし: 今日のご機嫌はいかがですか？\n"
+init_prompt += "<|endoftext|>仮想秘書官: とても良いです、私はYouTubeの配信を見ていました、あなたは？\n"
+init_prompt += "<|endoftext|>たかし: とても良いですね、私も配信を見ていました。\n"
+init_prompt += "<|endoftext|>仮想秘書官: いいですね！\n"
+init_prompt += "<|endoftext|>たかし: 仮想秘書官の好きなゲームはなんですか？\n"
+init_prompt += "<|endoftext|>仮想秘書官: マインクラフトが好きです！建築は楽しいです。\n"
+init_prompt += "<|endoftext|>たかし: 私もです！\n"
+init_prompt += "<|endoftext|>たかし: 最近動物園には行きましたか？\n"
+init_prompt += "<|endoftext|>仮想秘書官: 行きました！残念ながら雨が降り出してきたので早めに帰りました☔\n"
+init_prompt += "<|endoftext|>たかし: それは残念ですね。また行けるといいですね。\n"
 init_prompt += "<|endoftext|>System: Current conversation:\n"
-"""
 load_dotenv()
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -107,10 +91,9 @@ def main(content,st,id,acct, display_name):
             # 1日に会話できる上限を超えていた場合
             # メッセージを表示して処理を終わる
             if len(req) + str_count > limit:
-                reply_text = "お話できる1日の上限を超えました。"
-                reply_text += "日本時間の0時を過ぎるとリセットされるので"
-                reply_text += "また明日試してみてください。"
-                reply_text += "今日はいっぱい話しかけてくれてありがとう！"
+                reply_text = "1日に会話できる量の上限を超えています。"
+                reply_text += "日本時間の0時を過ぎるとリセットされますので"
+                reply_text += "また明日、たくさんお話ししましょう！"
 
                 mastodon.status_reply(st,
                         reply_text,
@@ -124,7 +107,7 @@ def main(content,st,id,acct, display_name):
 
     reply = ""
     prompt = init_prompt + db_prompt + "<|endoftext|>" + display_name + ": " + req + "\n"
-    prompt = prompt + "<|endoftext|>" + "GPTちゃん: "
+    prompt = prompt + "<|endoftext|>" + "仮想秘書官: "
     try:
         response = openai.Completion.create(
             engine="text-davinci-003",
@@ -141,10 +124,10 @@ def main(content,st,id,acct, display_name):
         print('args:' + str(e.args))
         print('e自身:' + str(e))
         try:
-            reply = "現在OpenAIのAPIサーバー側で"
+            reply = "現在 OpenAI の API サーバー側で"
             reply += "問題が発生しているようです。"
             reply += "しばらく時間を置いてから"
-            reply += "やり直してほしいです。申し訳ないです。"
+            reply += "あらためて話しかけてください。申し訳ありません。"
             mastodon.status_reply(st,
                     reply,
                     id,
@@ -172,7 +155,7 @@ def main(content,st,id,acct, display_name):
         str_count = str_count + len(req)
 
         prompt = db_prompt + "<|endoftext|>" + display_name + ": " + req + "\n"
-        prompt = prompt + "<|endoftext|>" + "GPTちゃん: " + reply + "\n"
+        prompt = prompt + "<|endoftext|>" + "仮想秘書官: " + reply + "\n"
         # promptが500文字以上の場合500文字以下になるまで削る
         while True:
             if len(prompt) > 500:
