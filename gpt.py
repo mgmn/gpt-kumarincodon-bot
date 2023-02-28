@@ -11,7 +11,7 @@ import datetime
 import time
 
 # 1日の上限の文字数
-str_limit = 1000
+str_limit = 10000
 
 # 公開範囲
 post_visibility = "unlisted"
