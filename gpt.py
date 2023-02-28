@@ -11,6 +11,10 @@ import time
 
 # 1日の上限の文字数
 str_limit = 1000
+
+# 公開範囲
+post_visibility = "unlisted"
+
 # 初期プロンプト
 init_prompt = "System: Instructions for 仮想秘書官: You're a regular Mastodon user. "
 init_prompt += "Your Mastodon instance has one human user who is the administator of this instance. "
@@ -62,7 +66,8 @@ class Stream(StreamListener):
             st = notif['status']
             main(content, st, id, acct, display_name)
 
-def main(content,st,id,acct, display_name):
+def main(content, st, id, acct, display_name):
+
     global DBFlag
     global keywordMemory
     global dbname
@@ -98,7 +103,7 @@ def main(content,st,id,acct, display_name):
                 mastodon.status_reply(st,
                         reply_text,
                         id,
-                        visibility='public')
+                        visibility=post_visibility)
                 return
         else:
             # 初回登録
@@ -131,7 +136,7 @@ def main(content,st,id,acct, display_name):
             mastodon.status_reply(st,
                     reply,
                     id,
-                    visibility='public')
+                    visibility=post_visibility)
         except Exception as e:
             print('=== エラー内容 ===')
             print('type:' + str(type(e)))
@@ -142,7 +147,7 @@ def main(content,st,id,acct, display_name):
         mastodon.status_reply(st,
                 reply,
                 id,
-                visibility='public')
+                visibility=post_visibility)
     except Exception as e:
         print('=== エラー内容 ===')
         print('type:' + str(type(e)))
