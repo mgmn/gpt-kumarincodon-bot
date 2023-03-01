@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 import schedule
 import datetime
 import time
+import re
 
 # 1日の上限の文字数
 str_limit = 10000
@@ -89,7 +90,14 @@ def main(content, st, id, acct, display_name):
     global keywordMemory
     global dbname
     global keywordAuthor
-    req = content.rsplit(">")[-2].split("<")[0].strip()
+    print(content)
+
+    req = re.sub(r'<[^>]+>', '', content)
+    at_index = req.find('@')
+    space_index = req.find(' ', at_index)
+    space_index = space_index + 1
+    req = req[:at_index] + req[space_index:]
+    print(req)
 
     str_count = -1
     limit = -1
@@ -176,7 +184,7 @@ def main(content, st, id, acct, display_name):
         sql = "INSERT OR REPLACE INTO users (id, acct, str_count, str_limit, prompt) values (?,?,?,?,?)"
         str_count = str_count + len(req)
 
-        prompt = db_prompt + "<|endoftext|>" + display_name + ": " + req + "\n"
+        prompt = db_prompt + "<|endoftext|>" + id + ": " + req + "\n"
         prompt = prompt + "<|endoftext|>" + myname + ": " + reply + "\n"
         # promptが500文字以上の場合500文字以下になるまで削る
         while True:
