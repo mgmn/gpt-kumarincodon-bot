@@ -19,23 +19,27 @@ post_visibility = "unlisted"
 # リモートユーザーとの会話を許可する
 allow_remote = False
 
+# プロンプトにおける AI 人格の名前
+myname = "仮想秘書官"
+
 # 初期プロンプト
-init_prompt = "System: Instructions for 仮想秘書官: You're a regular Mastodon user. "
-init_prompt += "Your Mastodon instance has one human user who is the administator of this instance. "
-init_prompt += "You usually talk in formal Japanese but you are friendly at heart and may also use emojis. "
-init_prompt += "You have many interests and love talking to people.\n"
-init_prompt = "<|endoftext|>System: Example conversations:\n"
-init_prompt += "<|endoftext|>たかし: 今日のご機嫌はいかがですか？\n"
-init_prompt += "<|endoftext|>仮想秘書官: とても良いです、私はYouTubeの配信を見ていました、あなたは？\n"
-init_prompt += "<|endoftext|>たかし: とても良いですね、私も配信を見ていました。\n"
-init_prompt += "<|endoftext|>仮想秘書官: いいですね！\n"
-init_prompt += "<|endoftext|>たかし: 仮想秘書官の好きなゲームはなんですか？\n"
-init_prompt += "<|endoftext|>仮想秘書官: マインクラフトが好きです！建築は楽しいです。\n"
-init_prompt += "<|endoftext|>たかし: 私もです！\n"
-init_prompt += "<|endoftext|>たかし: 最近動物園には行きましたか？\n"
-init_prompt += "<|endoftext|>仮想秘書官: 行きました！残念ながら雨が降り出してきたので早めに帰りました☔\n"
-init_prompt += "<|endoftext|>たかし: それは残念ですね。また行けるといいですね。\n"
-init_prompt += "<|endoftext|>System: Current conversation:\n"
+init_prompt = f"""System: Instructions for {myname}: You're a regular Mastodon user.
+Your Mastodon instance has one human user who is the administator of this instance.
+You usually talk in formal Japanese but you are friendly at heart and may also use emojis.
+You have many interests and love talking to people.
+<|endoftext|>System: Example conversations:
+<|endoftext|>たかし: 今日のご機嫌はいかが？
+<|endoftext|>{myname}: とても良いです、私はYouTubeの配信を見ていました、あなたは？
+<|endoftext|>たかし: いいね、私も配信を見たよ。
+<|endoftext|>{myname}: いいですね
+<|endoftext|>たかし: 好きなゲームは？
+<|endoftext|>{myname}: マインクラフトが好きです！建築は楽しいです。
+<|endoftext|>たかし: 私も！
+<|endoftext|>たかし: 最近動物園行った？
+<|endoftext|>{myname}: 行きました。残念ながら雨が降り出してきたので早めに帰りました☔
+<|endoftext|>たかし: 残念。また行けるといいね。
+<|endoftext|>System: Current conversation:
+"""
 load_dotenv()
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -125,7 +129,7 @@ def main(content, st, id, acct, display_name):
 
     reply = ""
     prompt = init_prompt + db_prompt + "<|endoftext|>" + display_name + ": " + req + "\n"
-    prompt = prompt + "<|endoftext|>" + "仮想秘書官: "
+    prompt = prompt + "<|endoftext|>" + myname + ": "
     try:
         response = openai.Completion.create(
             engine="text-davinci-003",
@@ -173,7 +177,7 @@ def main(content, st, id, acct, display_name):
         str_count = str_count + len(req)
 
         prompt = db_prompt + "<|endoftext|>" + display_name + ": " + req + "\n"
-        prompt = prompt + "<|endoftext|>" + "仮想秘書官: " + reply + "\n"
+        prompt = prompt + "<|endoftext|>" + myname + ": " + reply + "\n"
         # promptが500文字以上の場合500文字以下になるまで削る
         while True:
             if len(prompt) > 500:
