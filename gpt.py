@@ -136,7 +136,7 @@ def main(content, st, id, acct, display_name):
             limit = str_limit
 
     reply = ""
-    prompt = init_prompt + db_prompt + "<|endoftext|>" + display_name + ": " + req + "\n"
+    prompt = init_prompt + db_prompt + "<|endoftext|>" + id + ": " + req + "\n"
     prompt = prompt + "<|endoftext|>" + myname + ": "
     try:
         response = openai.Completion.create(
