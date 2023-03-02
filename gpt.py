@@ -12,7 +12,10 @@ import time
 import re
 
 # 1日の上限の文字数
-str_limit = 10000
+str_limit = 100000
+
+# 会話履歴の最大数
+prompts_limit = 50
 
 # 公開範囲
 post_visibility = "unlisted"
@@ -20,47 +23,13 @@ post_visibility = "unlisted"
 # リモートユーザーとの会話を許可する
 allow_remote = False
 
-# プロンプトにおける AI 人格の名前
-myname = "仮想秘書官"
-
 # 初期プロンプト
-init_prompt = f"""System: Instructions for {myname}: You're a regular Mastodon user.
-Your Mastodon instance has one human user who is the administator of this instance.
-You usually talk in formal Japanese but you are friendly at heart and may also use emojis.
-You have many interests and love talking to people.
-<|endoftext|>System: Example conversations:
-<|endoftext|>たかし: 動的コンテンツをCDNで提供することの利点ってなんだと思いますか？
-<|endoftext|>{myname}: CDN（コンテンツデリバリーネットワーク）を使用して動的コンテンツを提供することには、以下のような利点があります。
+init_prompt = [
+    {"role": "system", "content": "You are a helpful assistant and regular Mastodon user."},
+    {"role": "system", "content": "You usually talk in formal Japanese but you are friendly at heart and may also use emojis."},
+    {"role": "system", "content": "You have many interests and love talking to people."}
+]
 
-    1. 高速なコンテンツ配信：CDNは、世界中に配置された多数のサーバーを使用してコンテンツを配信するため、ユーザーにとってより高速なコンテンツ配信を実現することができます。特に、ユーザーが遠く離れた場所からアクセスする場合でも、遅延やレイテンシーが低くなるため、快適な閲覧体験を提供できます。
-
-    2. スケーラビリティ：動的なコンテンツを提供する場合、多くの場合、サーバーの負荷が高くなることがあります。しかし、CDNは、多数のサーバーを使用するため、負荷を分散することができます。これにより、スケーラビリティが向上し、大量のトラフィックでも、高速かつ安定したコンテンツ配信を実現することができます。
-
-    3. セキュリティ：CDNは、セキュリティ機能を提供することができます。CDNは、DDoS攻撃を検知し、防止するために、多層の防御機能を備えています。また、CDNは、SSL証明書を提供するため、安全なコミュニケーションを実現することができます。
-
-    4. コスト削減：CDNは、多数のサーバーを使用してコンテンツを配信するため、ローカルサーバーを設置する必要がありません。これにより、ハードウェアや設備投資、人件費などのコストを削減することができます。
-
-以上のような利点があるため、多くの企業やウェブサイトは、CDNを使用して動的なコンテンツを提供することを選択しています。
-<|endoftext|>たかし: DDoSから防御できる利点は強そうですね。
-
-動的コンテンツの中でも、たとえばSNSでの会話のように、コンテンツのキャッシュができないようなものってあると思うんです。そういうコンテンツにおいては、CDNはあまり意味をなさないものなんでしょうか？
-<|endoftext|>{myname}: CDNは、静的なコンテンツの配信に最適ですが、動的なコンテンツの配信にも利用されます。ただし、動的なコンテンツは、ユーザーに応じてコンテンツが変化するため、CDNのキャッシュ機能を使用できないことがあります。
-
-SNSなどでの会話など、リアルタイムで変化するコンテンツは、CDNのキャッシュ機能を利用できない場合が多く、CDNの効果は限定的となる可能性があります。ただし、CDNは、スケーラビリティやセキュリティの向上にも役立つため、動的なコンテンツを提供する場合でも、CDNの利用が有効である場合があります。
-
-また、動的なコンテンツの場合、CDNは、負荷分散や遅延削減のために使用されることがあります。CDNは、世界中に多数のサーバーを展開しているため、ユーザーが近くのサーバーに接続することができ、遅延を軽減することができます。さらに、CDNは、サーバーの負荷を分散するため、スケーラビリティを向上させることができます。
-
-したがって、動的なコンテンツを提供する場合でも、CDNの利用は、遅延の削減やスケーラビリティの向上など、さまざまなメリットがあります。ただし、CDNを利用する前に、コンテンツの性質をよく理解し、最適な配信方法を選択する必要があります。
-<|endoftext|>たかし: リアルタイムなコンテンツは直接配信でもいい場合もありそうですね
-<|endoftext|>{myname}: はい、リアルタイムなコンテンツの場合、CDNよりも直接配信することが適切な場合があります。特に、リアルタイムなコンテンツは、キャッシュを利用できないため、CDNによる配信のメリットが少なくなります。
-
-代わりに、直接配信によって、コンテンツのリアルタイム性を維持することができます。また、直接配信は、ユーザーとの通信経路が短く、遅延を軽減することができます。さらに、直接配信は、コンテンツのセキュリティを確保するための対策が簡単で、高いレベルのセキュリティを提供することができます。
-
-ただし、リアルタイムなコンテンツを直接配信する場合、配信サーバーの負荷分散や冗長性の確保など、インフラストラクチャーの構築に工夫が必要となります。また、トラフィックが急増するイベントやピーク時の負荷対策なども必要となります。
-
-したがって、リアルタイムなコンテンツの場合は、CDNと直接配信のメリットとデメリットを比較し、適切な配信方法を選択する必要があります🔍
-<|endoftext|>System: Current conversation:
-"""
 load_dotenv()
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -71,7 +40,7 @@ dbname = "gpt.db"
 def job():
     with closing(sqlite3.connect(dbname)) as conn:
         c = conn.cursor()
-        sql = "update users set str_count = 0"
+        sql = "update counts set str_count = 0"
         c.execute(sql)
         print("str_countを0にリセットしました")
         print(datetime.datetime.now())
@@ -120,27 +89,45 @@ def main(content, st, id, acct, display_name):
     print(req)
 
     str_count = -1
-    limit = -1
-    prompt = ""
-    db_prompt = ""
+    prompt = init_prompt
+    db_prompt = []
 
     with closing(sqlite3.connect(dbname)) as conn:
         c = conn.cursor()
-        create_table = "CREATE TABLE IF NOT EXISTS users(id, acct, str_count, str_limit, prompt ,PRIMARY KEY(acct))"
-        c.execute(create_table)
-        sql = "select str_count, str_limit, prompt from users where acct = ?"
-        word = (acct,)
-        result = c.execute(sql, word)
-        for row in result:
-            if row[0] != "":
-                str_count = row[0]
-                limit = row[1]
-                db_prompt = row[2]
+
+        try:
+            create_count_table = "CREATE TABLE IF NOT EXISTS counts (acct, str_count, PRIMARY KEY(acct))"
+            create_prompt_table = "CREATE TABLE IF NOT EXISTS prompts (seq INTEGER PRIMARY KEY AUTOINCREMENT, acct, role, prompt)"
+            create_prompt_index = "CREATE INDEX IF NOT EXISTS ix_acct ON prompts (acct)"
+            c.execute(create_count_table)
+            c.execute(create_prompt_table)
+            c.execute(create_prompt_index)
+        except Exception as e:
+            print('=== エラー@create_*_table ===')
+            print('type:' + str(type(e)))
+            print('args:' + str(e.args))
+            print('e自身:' + str(e))
+            return
+
+        try:
+            sql_count = "SELECT str_count FROM counts WHERE acct = ?"
+            words_count = (acct,)
+            result_count = c.execute(sql_count, words_count)
+            for row in result_count:
+                if row[0] != "":
+                    str_count = row[0]
+            print(str_count)
+        except Exception as e:
+            print('=== エラー@sql_count ===')
+            print('type:' + str(type(e)))
+            print('args:' + str(e.args))
+            print('e自身:' + str(e))
+            return
 
         if str_count != -1:
             # 1日に会話できる上限を超えていた場合
             # メッセージを表示して処理を終わる
-            if len(req) + str_count > limit:
+            if len(req) + str_count > str_limit:
                 reply_text = "1日に会話できる量の上限を超えています。"
                 reply_text += "日本時間の0時を過ぎるとリセットされますので"
                 reply_text += "また明日、たくさんお話ししましょう！"
@@ -153,21 +140,29 @@ def main(content, st, id, acct, display_name):
         else:
             # 初回登録
             str_count = 0
-            limit = str_limit
 
-    reply = ""
-    prompt = init_prompt + db_prompt + "<|endoftext|>" + id + ": " + req + "\n"
-    prompt = prompt + "<|endoftext|>" + myname + ": "
+        sql_prompt = "SELECT role, prompt FROM prompts WHERE acct = ?"
+        words_prompt = (acct,)
+        result_prompt = c.execute(sql_prompt, words_prompt)
+        for row in result_prompt:
+            if row[0] != "":
+                db_prompt.append({"role": row[0], "content": row[1]})
+
+    request_message = {"role": "user", "content": req}
+    response_message = {}
+
+    prompt.extend(db_prompt)
+    prompt.append(request_message)
+
+    print(prompt)
     try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            temperature=1.0,
-            top_p=0.9,
-            max_tokens=450,
-            stop=["<|endoftext|>"],
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=prompt
         )
-        reply = response.choices[0].text.strip()
+        response_message = response.choices[0].message
+        print(response_message)
+
     except Exception as e:
         print('=== エラー内容 ===')
         print('type:' + str(type(e)))
@@ -182,15 +177,17 @@ def main(content, st, id, acct, display_name):
                     reply,
                     id,
                     visibility=post_visibility)
+            return
         except Exception as e:
             print('=== エラー内容 ===')
             print('type:' + str(type(e)))
             print('args:' + str(e.args))
             print('e自身:' + str(e))
+            return
 
     try:
         mastodon.status_reply(st,
-                reply,
+                response_message.content,
                 id,
                 visibility=post_visibility)
     except Exception as e:
@@ -198,28 +195,55 @@ def main(content, st, id, acct, display_name):
         print('type:' + str(type(e)))
         print('args:' + str(e.args))
         print('e自身:' + str(e))
+        return
 
     with closing(sqlite3.connect(dbname)) as conn:
         c = conn.cursor()
-        sql = "INSERT OR REPLACE INTO users (id, acct, str_count, str_limit, prompt) values (?,?,?,?,?)"
-        str_count = str_count + len(req)
 
-        prompt = db_prompt + "<|endoftext|>" + id + ": " + req + "\n"
-        prompt = prompt + "<|endoftext|>" + myname + ": " + reply + "\n"
-        # promptが500文字以上の場合500文字以下になるまで削る
-        while True:
-            if len(prompt) > 500:
-                prompt_list = prompt.split("\n")
-                del prompt_list[0]
-                prompt = ""
-                for p in prompt_list:
-                    prompt += p + "\n"
-            else:
-                break
+        try:
+            sql_insert_count = "INSERT OR REPLACE INTO counts (acct, str_count) values (?,?)"
+            str_count = str_count + len(req)
+            words_insert_count = (acct, str_count)
+            c.execute(sql_insert_count, words_insert_count)
+            print(f"str_count: {str_count}")
 
-        words = (id , acct, str_count, limit, prompt)
-        c.execute(sql, words)
-        conn.commit()
+            sql_insert_prompt = "INSERT INTO prompts (acct, role, prompt) values (?,?,?)"
+            words_insert_request_prompt = (acct, request_message["role"], request_message["content"])
+            c.execute(sql_insert_prompt, words_insert_request_prompt)
+            words_insert_response_prompt = (acct, response_message["role"], response_message["content"])
+            c.execute(sql_insert_prompt, words_insert_response_prompt)
+
+            conn.commit()
+            print("prompts commit done")
+
+        except Exception as e:
+            print('=== エラー@prompts commit ===')
+            print('type:' + str(type(e)))
+            print('args:' + str(e.args))
+            print('e自身:' + str(e))
+
+        try:
+            # 会話履歴の上限を超えてたら古いものから削除する
+            sql_rowcount_prompt = "SELECT COUNT(seq) FROM prompts WHERE acct = ?"
+            words_rowcount_prompt = (acct,)
+            c.execute(sql_rowcount_prompt, words_rowcount_prompt)
+            prompts_count = c.fetchone()[0]
+            print(f"prompts_count: {prompts_count}")
+
+            if prompts_count > prompts_limit:
+                print(f"prompts reduce {prompts_count - prompts_limit} rows")
+                sql_reduce_prompt = """DELETE FROM prompts WHERE seq IN (
+                    SELECT seq FROM prompts WHERE acct = ? ORDER BY seq LIMIT ?)"""
+                words_reduce_prompt = (acct, prompts_count - prompts_limit)
+                c.execute(sql_reduce_prompt, words_reduce_prompt)
+                conn.commit()
+                print("prompts reduce done")
+
+        except Exception as e:
+            print('=== エラー@reduce promppts ===')
+            print('type:' + str(type(e)))
+            print('args:' + str(e.args))
+            print('e自身:' + str(e))
 
 def mastodon_exe():
     print("起動しました")
