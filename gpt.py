@@ -11,6 +11,9 @@ import datetime
 import time
 import re
 
+# 返答の最大の token 数
+max_tokens = 450
+
 # 1日の上限の文字数
 str_limit = 100000
 
@@ -160,7 +163,8 @@ def main(content, st, id, acct, display_name):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=prompt
+            messages=prompt,
+            max_tokens=max_tokens
         )
         response_message = response.choices[0].message
         print(f"{response_message['role']}: {response_message['content']}")
