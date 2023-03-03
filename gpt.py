@@ -161,7 +161,7 @@ def main(content, st, id, acct, display_name):
             messages=prompt
         )
         response_message = response.choices[0].message
-        print(response_message)
+        print(f"{response_message['role']}: {response_message['content']}")
 
     except Exception as e:
         print('=== エラー内容 ===')
