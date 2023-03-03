@@ -89,7 +89,7 @@ def main(content, st, id, acct, display_name):
     print(req)
 
     str_count = -1
-    prompt = init_prompt
+    prompt = init_prompt.copy()
     db_prompt = []
 
     with closing(sqlite3.connect(dbname)) as conn:
