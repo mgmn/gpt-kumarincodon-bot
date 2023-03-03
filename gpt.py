@@ -15,7 +15,9 @@ import re
 str_limit = 100000
 
 # 会話履歴の最大数
-prompts_limit = 50
+# gpt-3.5のコンテキスト上限は 4096 tokens
+# 日本語は 1字 1 token 扱いなので、お互い500字で話し合った場合、4往復を超えたあたりで上限に達し InvalidRequestError になる
+prompts_limit = 8
 
 # 公開範囲
 post_visibility = "unlisted"
