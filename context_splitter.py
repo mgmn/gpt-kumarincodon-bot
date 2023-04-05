@@ -56,7 +56,7 @@ def split_to_paragraphs(str):
             result.append(para + "\n\n")
     return result
 
-# 文字列を count 字以内に結合する
+# 文字列を文単位で count 字以内に結合する
 def merge_sentences(sentences, count):
     result1 = []
     result2 = []
@@ -88,7 +88,7 @@ def split_to_sentences(str):
             result.append(sentence)
     return result
 
-# 文字列を単語単位で count 字以内に分割する
+# 文字列を単語単位で count 字以内に結合する
 def merge_words(words, count):
     result1 = []
     result2 = []
