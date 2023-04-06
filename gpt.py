@@ -10,9 +10,13 @@ import schedule
 import datetime
 import time
 import re
+from context_splitter import split_context
 
-# 返答の最大の token 数
-max_tokens = 450
+# 返答の1ポストあたりの最大の文字数
+max_chars = 450
+
+# ポスティング間隔 (s)
+wait_to_next_post = 5
 
 # 1日の上限の文字数
 str_limit = 100000
@@ -163,8 +167,7 @@ def main(content, st, id, acct, display_name):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
-            messages=prompt,
-            max_tokens=max_tokens
+            messages=prompt
         )
         response_message = response.choices[0].message
         print(f"{response_message['role']}: {response_message['content']}")
@@ -191,11 +194,10 @@ def main(content, st, id, acct, display_name):
             print('e自身:' + str(e))
             return
 
+    responses = split_context(response_message.content, max_chars)
+
     try:
-        mastodon.status_reply(st,
-                response_message.content,
-                id,
-                visibility=post_visibility)
+        chain_reply(responses, st)
     except Exception as e:
         print('=== エラー内容 ===')
         print('type:' + str(type(e)))
@@ -250,6 +252,16 @@ def main(content, st, id, acct, display_name):
             print('type:' + str(type(e)))
             print('args:' + str(e.args))
             print('e自身:' + str(e))
+
+def chain_reply(responses, reply_to):
+    recent_status = reply_to
+    for response in responses:
+        recent_status = mastodon.status_reply(
+                    recent_status,
+                    response,
+                    id,
+                    visibility=post_visibility)
+        time.sleep(wait_to_next_post)
 
 def mastodon_exe():
     print("起動しました")
