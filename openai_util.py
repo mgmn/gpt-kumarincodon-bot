@@ -9,7 +9,7 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 def chat_completion(prompt, retry_count, timeout):
     array_response = []
     worker = threading.Thread(target=chat_completion_worker, args=(prompt, array_response))
-    for i in range(retry_count):
+    for i in range(1 + retry_count):
         worker.start()
         worker.join(timeout)
         if len(array_response) == 1:
