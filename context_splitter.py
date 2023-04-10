@@ -44,7 +44,7 @@ def split_to_paragraphs(str):
             isInCodeblock = True
         # コードブロックのなかにいる
         if isInCodeblock:
-            codeblock += para
+            codeblock += para + "\n\n"
             # コードブロックから出たとき
             if para.endswith("\n```"):
                 isInCodeblock = False
