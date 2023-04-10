@@ -10,7 +10,6 @@ import schedule
 import datetime
 import time
 import string_util
-from openai_util import chat_completion
 from context_splitter import split_context
 
 # 返答の1ポストあたりの最大の文字数
