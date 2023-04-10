@@ -40,7 +40,7 @@ def split_to_paragraphs(str):
     # 分割した各段落を結果配列に加えていく
     for para in paragraphs:
         # コードブロックが分割されてる場合は復元する
-        if not isInCodeblock and para.startswith("```\n"):
+        if not isInCodeblock and re.match(r'^```(?:\w+)?\n', para) != None:
             isInCodeblock = True
         # コードブロックのなかにいる
         if isInCodeblock:
