@@ -9,7 +9,8 @@ from concurrent.futures import ThreadPoolExecutor
 import schedule
 import datetime
 import time
-import re
+import string_util
+from openai_util import chat_completion
 from context_splitter import split_context
 
 # 返答の1ポストあたりの最大の文字数
@@ -90,11 +91,7 @@ def main(content, st, id, acct, display_name):
     global keywordAuthor
     print(content)
 
-    req = re.sub(r'<[^>]+>', '', content)
-    at_index = req.find('@')
-    space_index = req.find(' ', at_index)
-    space_index = space_index + 1
-    req = req[:at_index] + req[space_index:]
+    req = string_util.remove_first_accts_id(string_util.remove_tags(content))
     print(req)
 
     str_count = -1
@@ -194,7 +191,7 @@ def main(content, st, id, acct, display_name):
             print('e自身:' + str(e))
             return
 
-    responses = split_context(response_message.content, max_chars)
+    responses = split_context(string_util.escape_acct_at(response_message.content), max_chars)
 
     try:
         chain_reply(responses, st)
