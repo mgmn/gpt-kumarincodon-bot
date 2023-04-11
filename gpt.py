@@ -46,6 +46,9 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 # データベース名
 dbname = "gpt.db"
 
+# Mastodon API
+mastodon = Mastodon(access_token = 'gptchan_clientcred.txt')
+
 def job():
     with closing(sqlite3.connect(dbname)) as conn:
         c = conn.cursor()
@@ -60,9 +63,9 @@ def db_str_count_reset():
         schedule.run_pending()
         time.sleep(60)
 
-class Stream(StreamListener):
+class GPTMentionListener(StreamListener):
     def __init__(self):
-        super(Stream, self).__init__()
+        super(GPTMentionListener, self).__init__()
 
     def on_notification(self,notif): #通知が来た時に呼び出されます
         if notif['type'] == 'mention': #通知の内容がリプライかチェック
@@ -72,6 +75,26 @@ class Stream(StreamListener):
             display_name = notif['status']['account']['display_name']
             st = notif['status']
             main(content, st, id, acct, display_name)
+
+def mastodon_exe():
+    connection_handle = mastodon.stream_user(GPTMentionListener(), run_async=True, timeout=60)
+    print("stream に接続しました")
+    return connection_handle
+
+def connection_handler():
+    connection_handle = mastodon_exe()
+    while True:
+        time.sleep(1)
+        if connection_handle.is_alive() and connection_handle.is_receiving():
+            # stream is healthy
+            continue
+        print("stream に再接続します")
+        try:
+            connection_handle.close()
+        except:
+            pass
+        time.sleep(5)
+        connection_handle = mastodon_exe()
 
 def main(content, st, id, acct, display_name):
 
@@ -259,13 +282,7 @@ def chain_reply(responses, reply_to):
                     visibility=post_visibility)
         time.sleep(wait_to_next_post)
 
-def mastodon_exe():
-    print("起動しました")
-    mastodon.stream_user(Stream()) #ストリームの起動
-
-mastodon = Mastodon(access_token = 'gptchan_clientcred.txt')
 
 with ThreadPoolExecutor(max_workers=2, thread_name_prefix="thread") as executor:
     executor.submit(db_str_count_reset)
-    executor.submit(mastodon_exe)
-
+    executor.submit(connection_handler)
