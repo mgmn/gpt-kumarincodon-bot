@@ -86,7 +86,7 @@ def connection_handler():
     while True:
         time.sleep(1)
         if connection_handle.is_alive() and connection_handle.is_receiving():
-            # stream is haalthy
+            # stream is healthy
             continue
         print("stream に再接続します")
         try:
