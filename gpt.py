@@ -77,8 +77,24 @@ class GPTMentionListener(StreamListener):
             main(content, st, id, acct, display_name)
 
 def mastodon_exe():
-    mastodon.stream_user(GPTMentionListener(), run_async=True, timeout=60, reconnect_async=True)
-    print("起動しました")
+    connection_handle = mastodon.stream_user(GPTMentionListener(), run_async=True, timeout=60)
+    print("stream に接続しました")
+    return connection_handle
+
+def connection_handler():
+    connection_handle = mastodon_exe()
+    while True:
+        time.sleep(1)
+        if connection_handle.is_alive() and connection_handle.is_receiving():
+            # stream is haalthy
+            continue
+        print("stream に再接続します")
+        try:
+            connection_handle.close()
+        except:
+            pass
+        time.sleep(5)
+        connection_handle = mastodon_exe()
 
 def main(content, st, id, acct, display_name):
 
@@ -269,5 +285,4 @@ def chain_reply(responses, reply_to):
 
 with ThreadPoolExecutor(max_workers=2, thread_name_prefix="thread") as executor:
     executor.submit(db_str_count_reset)
-    executor.submit(mastodon_exe)
-
+    executor.submit(connection_handler)
