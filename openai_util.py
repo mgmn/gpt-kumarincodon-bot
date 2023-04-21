@@ -14,6 +14,7 @@ def chat_completion(prompt, retry_count, timeout):
         worker.join(timeout)
         if len(array_response) == 1:
             return array_response[0]
+        print(f'Retrying to OpenAI {1 + i}/{retry_count}')
     return None
 
 def chat_completion_worker(prompt, array_response):
