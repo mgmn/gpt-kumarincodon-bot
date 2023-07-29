@@ -49,3 +49,13 @@ db_reset.pyについて
 2023年2月22日追記：
 
 gpt.pyの中に午前0時に文字数カウントをリセットする機能組み込んだのでdb_reset.pyはもういらないかも？
+
+
+2023年7月9日追記:
+
+依存関係がアップデートされた場合は
+
+pip install --upgrade mastodon.py
+pip install --upgrade openai
+
+を実行します。
