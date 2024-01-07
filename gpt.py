@@ -2,14 +2,12 @@
 from mastodon import Mastodon, StreamListener
 import sqlite3
 from contextlib import closing
-import openai
-import os
-from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
 import schedule
 import datetime
 import time
 import string_util
+from openai_util import chat_completion
 from context_splitter import split_context
 
 # 返答の1ポストあたりの最大の文字数
@@ -32,16 +30,18 @@ post_visibility = "unlisted"
 # リモートユーザーとの会話を許可する
 allow_remote = False
 
+# OpenAI API リクエストのリトライ回数
+openAI_request_retry_count = 1
+
+# OpenAI API リクエストのタイムアウト時間 (s)
+openAI_request_timeout = 180
+
 # 初期プロンプト
 init_prompt = [
     {"role": "system", "content": "You are a helpful assistant and regular Mastodon user."},
     {"role": "system", "content": "You usually talk in formal Japanese but you are friendly at heart and may also use emojis."},
     {"role": "system", "content": "You have many interests and love talking to people."}
 ]
-
-load_dotenv()
-
-openai.api_key = os.environ["OPENAI_API_KEY"]
 
 # データベース名
 dbname = "gpt.db"
@@ -184,10 +184,15 @@ def main(content, st, id, acct, display_name):
 
     print(prompt)
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=prompt
-        )
+        response = chat_completion(prompt, openAI_request_retry_count, openAI_request_timeout)
+        if response == None:
+            reply = "現在 OpenAI の API サーバー側で問題が発生しているようです。"
+            reply += "しばらく時間を置いてから、あらためて話しかけてください。申し訳ありません。"
+            mastodon.status_reply(st,
+                    reply,
+                    id,
+                    visibility=post_visibility)
+            return
         response_message = response.choices[0].message
         print(f"{response_message['role']}: {response_message['content']}")
 
@@ -197,10 +202,8 @@ def main(content, st, id, acct, display_name):
         print('args:' + str(e.args))
         print('e自身:' + str(e))
         try:
-            reply = "現在 OpenAI の API サーバー側で"
-            reply += "問題が発生しているようです。"
-            reply += "しばらく時間を置いてから"
-            reply += "あらためて話しかけてください。申し訳ありません。"
+            reply = "OpenAI の API が予期しない応答を返してきたようです。"
+            reply += "お手数をかけまして申し訳ありませんが、ログの確認をお願いします。"
             mastodon.status_reply(st,
                     reply,
                     id,
